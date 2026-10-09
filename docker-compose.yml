@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: cloudops-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: cloud_optimizer
+      MYSQL_USER: cloudops
+      MYSQL_PASSWORD: cloudops_secure_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cloudops-app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: cloud_optimizer
+      DB_USERNAME: cloudops
+      DB_PASSWORD: cloudops_secure_password
+      JWT_SECRET: production-grade-64-character-hmac-sha-key-for-jwt-tokens-very-secure!!
+      AWS_REGION: ap-south-1
+      APP_ADMIN_EMAIL: admin@cloudops.local
+      APP_ADMIN_PASSWORD: Admin@123
+      REPORT_DIR: /app/data/reports
+    volumes:
+      - app_reports:/app/data/reports
+
+volumes:
+  mysql_data:
+  app_reports:

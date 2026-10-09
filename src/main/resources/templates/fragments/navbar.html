@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<nav th:fragment="navbar" class="navbar">
+    <div class="nav-inner">
+        <a href="/dashboard" class="brand-logo">
+            <div class="brand-icon">⚡</div>
+            <div class="brand-name">Cloud<span>Ops</span></div>
+        </a>
+
+        <ul class="nav-links">
+            <li>
+                <a href="/dashboard" th:classappend="${activePage == 'dashboard' ? 'active' : ''}" class="nav-link">
+                    <span>📊</span> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="/resources" th:classappend="${activePage == 'resources' ? 'active' : ''}" class="nav-link">
+                    <span>☁️</span> Resources
+                </a>
+            </li>
+            <li>
+                <a href="/recommendations" th:classappend="${activePage == 'recommendations' ? 'active' : ''}" class="nav-link">
+                    <span>💡</span> Recommendations
+                </a>
+            </li>
+            <li>
+                <a href="/alerts" th:classappend="${activePage == 'alerts' ? 'active' : ''}" class="nav-link">
+                    <span>🔔</span> Alerts
+                    <span th:if="${unreadAlertsCount != null and unreadAlertsCount > 0}" id="navAlertBadge" class="badge badge-critical" style="padding: 0.1rem 0.4rem; font-size: 0.65rem;" th:text="${unreadAlertsCount}">3</span>
+                </a>
+            </li>
+            <li>
+                <a href="/reports" th:classappend="${activePage == 'reports' ? 'active' : ''}" class="nav-link">
+                    <span>📑</span> Reports
+                </a>
+            </li>
+            <li>
+                <a href="/scans" th:classappend="${activePage == 'scans' ? 'active' : ''}" class="nav-link">
+                    <span>🛰️</span> Scans
+                </a>
+            </li>
+            <li th:if="${currentUser != null and currentUser.role.name() == 'ADMIN'}">
+                <a href="/activity" th:classappend="${activePage == 'activity' ? 'active' : ''}" class="nav-link">
+                    <span>📋</span> Audit Log
+                </a>
+            </li>
+        </ul>
+
+        <div class="nav-actions">
+            <button th:if="${currentUser != null and currentUser.role.name() == 'ADMIN'}" type="button" class="btn btn-primary btn-sm" onclick="openScanModal()">
+                <span>⚡</span> Run AWS Scan
+            </button>
+
+            <div class="user-profile-badge" th:if="${currentUser != null}">
+                <div class="user-avatar" th:text="${currentUser.fullName != null and !#strings.isEmpty(currentUser.fullName) ? #strings.substring(currentUser.fullName, 0, 1) : 'U'}">A</div>
+                <span style="font-weight: 500;" th:text="${currentUser.fullName != null ? currentUser.fullName : currentUser.email}">Admin</span>
+                <span class="user-role-tag" th:text="${currentUser.role}">ADMIN</span>
+                <button type="button" onclick="handleLogout()" title="Logout" style="background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:0.9rem; margin-left: 0.3rem;">🚪</button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Scan Modal Fragment -->
+<div th:fragment="scanModal" id="scanModal" class="modal-backdrop">
+    <div class="modal-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+            <h3 style="font-size:1.25rem; font-weight:700;">Initiate Cloud Optimization Scan</h3>
+            <button type="button" onclick="closeScanModal()" style="background:none; border:none; color:var(--text-muted); font-size:1.4rem; cursor:pointer;">&times;</button>
+        </div>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1.5rem;">
+            Executes read-only discovery across EC2, EBS, EIP, S3, IAM, and CloudWatch metrics. Runs the 5 deterministic optimization rules and calculates your latest optimization score.
+        </p>
+
+        <div class="form-group">
+            <label class="form-label">Target AWS Region</label>
+            <select id="scanRegionSelect" class="form-select">
+                <option value="ap-south-1" selected>ap-south-1 (Asia Pacific - Mumbai)</option>
+                <option value="us-east-1">us-east-1 (US East - N. Virginia)</option>
+                <option value="us-west-2">us-west-2 (US West - Oregon)</option>
+                <option value="eu-west-1">eu-west-1 (Europe - Ireland)</option>
+            </select>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:2rem;">
+            <button type="button" class="btn btn-secondary" onclick="closeScanModal()">Cancel</button>
+            <button type="button" id="triggerScanSubmitBtn" class="btn btn-primary" onclick="triggerScanFromModal()">Start Scan Now</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>

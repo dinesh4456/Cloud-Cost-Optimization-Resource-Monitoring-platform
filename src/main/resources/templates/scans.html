@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan History - Cloud Cost Optimizer</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="app-container">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <main class="main-content">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+            <div>
+                <h1 style="font-size: 1.85rem; font-weight: 800;">AWS Scan Jobs</h1>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">
+                    Full audit logs of manual and scheduled cloud resource discovery pipelines
+                </p>
+            </div>
+            <button th:if="${currentUser != null and currentUser.role.name() == 'ADMIN'}" type="button" class="btn btn-primary" onclick="openScanModal()">
+                <span>⚡</span> Run New Scan
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="table-container">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Job ID</th>
+                            <th>Status</th>
+                            <th>Target Region</th>
+                            <th>Resources Discovered</th>
+                            <th>Health Score</th>
+                            <th>Est. Monthly Spend</th>
+                            <th>Est. Monthly Savings</th>
+                            <th>Started At</th>
+                            <th>Completed At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${scans.empty}">
+                            <td colspan="9" style="text-align: center; color: var(--text-dim); padding: 3rem;">
+                                No scans recorded. Trigger your first scan to discover AWS infrastructure.
+                            </td>
+                        </tr>
+                        <tr th:each="scan : ${scans}">
+                            <td><span class="code-pill" th:text="'#' + ${scan.id}">#1</span></td>
+                            <td>
+                                <span class="badge" th:classappend="${scan.status.name() == 'SUCCESS' ? 'badge-success' : (scan.status.name() == 'RUNNING' ? 'badge-running' : 'badge-critical')}" th:text="${scan.status}">SUCCESS</span>
+                            </td>
+                            <td th:text="${scan.region}">ap-south-1</td>
+                            <td><strong th:text="${scan.resourcesScannedCount}">12</strong> resources</td>
+                            <td>
+                                <span th:if="${scan.healthScore != null}" class="badge" th:classappend="${scan.healthScore >= 80 ? 'badge-success' : (scan.healthScore >= 50 ? 'badge-medium' : 'badge-critical')}" th:text="${scan.healthScore} + '/100'">85/100</span>
+                                <span th:if="${scan.healthScore == null}">-</span>
+                            </td>
+                            <td th:text="${scan.estimatedMonthlyCost != null ? '$' + scan.estimatedMonthlyCost : '-'}">$148.50</td>
+                            <td style="color: var(--accent-emerald); font-weight: 600;" th:text="${scan.estimatedMonthlySavings != null ? '$' + scan.estimatedMonthlySavings : '-'}">$82.30</td>
+                            <td style="color: var(--text-muted); font-size: 0.8rem;" th:text="${#temporals.format(scan.startedAt, 'yyyy-MM-dd HH:mm:ss')}">2026-10-07 10:00:00</td>
+                            <td style="color: var(--text-muted); font-size: 0.8rem;" th:text="${scan.completedAt != null ? #temporals.format(scan.completedAt, 'yyyy-MM-dd HH:mm:ss') : 'Running...'}">2026-10-07 10:00:15</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/navbar :: scanModal}"></div>
+</div>
+
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

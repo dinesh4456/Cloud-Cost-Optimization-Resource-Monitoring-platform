@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - Cloud Cost Optimizer</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="auth-page">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="brand-icon" style="margin: 0 auto; width: 48px; height: 48px; font-size: 1.4rem;">⚡</div>
+            <h1 class="auth-title">Cloud<span style="color:var(--accent-cyan)">Ops</span> Optimizer</h1>
+            <p class="auth-subtitle">AWS Resource Monitoring & Cost Governance</p>
+        </div>
+
+        <form id="loginForm" onsubmit="handleLoginSubmit(event)">
+            <div class="form-group">
+                <label class="form-label" for="email">Work Email</label>
+                <input type="email" id="email" class="form-input" placeholder="admin@cloudops.local" required autocomplete="username">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" class="form-input" placeholder="••••••••••••" required autocomplete="current-password">
+            </div>
+
+            <button type="submit" id="loginBtn" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.8rem;">
+                Sign In to Platform
+            </button>
+        </form>
+
+        <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color); font-size: 0.825rem; color: var(--text-dim); text-align: center;">
+            <p>Demo Admin: <strong style="color: var(--accent-cyan);">admin@cloudops.local</strong> / <strong style="color: var(--accent-cyan);">Admin@123</strong></p>
+            <p style="margin-top: 0.75rem;">
+                Don't have an account? <a href="/register" style="color: var(--accent-cyan); text-decoration: none; font-weight: 600;">Create Account</a>
+            </p>
+        </div>
+    </div>
+
+    <script th:src="@{/js/app.js}"></script>
+    <script>
+        async function handleLoginSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
+            btn.disabled = true;
+            btn.textContent = 'Authenticating...';
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (res.ok) {
+                    showToast('Authentication successful! Loading dashboard...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 500);
+                } else {
+                    const err = await res.json();
+                    showToast(err.message || 'Invalid email or password', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Sign In to Platform';
+                }
+            } catch (ex) {
+                showToast('Network error: ' + ex.message, 'error');
+                btn.disabled = false;
+                btn.textContent = 'Sign In to Platform';
+            }
+        }
+    </script>
+</body>
+</html>

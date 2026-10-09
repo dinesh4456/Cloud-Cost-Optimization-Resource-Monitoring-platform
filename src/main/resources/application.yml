@@ -1,0 +1,68 @@
+spring:
+  application:
+    name: cloud-optimizer
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:cloud_optimizer}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+  jpa:
+    open-in-view: true
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  servlet:
+    multipart:
+      max-file-size: 5MB
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    root: INFO
+    com.cloudops.optimizer: INFO
+    org.flywaydb: INFO
+    software.amazon.awssdk: WARN
+
+optimizer:
+  aws:
+    region: ${AWS_REGION:ap-south-1}
+  jwt:
+    secret: ${JWT_SECRET:local-dev-only-change-this-to-a-64-character-secret-key!!}
+    expiration-ms: 86400000
+    cookie-name: ACCESS_TOKEN
+  admin:
+    email: ${APP_ADMIN_EMAIL:admin@cloudops.local}
+    password: ${APP_ADMIN_PASSWORD:Admin@123}
+    name: Platform Admin
+  scan:
+    enabled: false
+    cron: "0 0 2 * * *"
+    s3-object-sample-limit: 200
+  rules:
+    idle-cpu-percent: 10.0
+    idle-lookback-days: 7
+    s3-glacier-age-days: 90
+    s3-storage-threshold-gb: 50.0
+  pricing:
+    unused-eip-monthly-usd: 3.65
+    ebs-gb-month-usd: 0.08
+    s3-standard-gb-month-usd: 0.023
+    s3-glacier-gb-month-usd: 0.004
+  reports:
+    output-dir: ${REPORT_DIR:./data/reports}

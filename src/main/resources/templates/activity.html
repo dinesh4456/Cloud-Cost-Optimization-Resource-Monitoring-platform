@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Trail - Cloud Cost Optimizer</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="app-container">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <main class="main-content">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+            <div>
+                <h1 style="font-size: 1.85rem; font-weight: 800;">System Audit Trail</h1>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">
+                    Immutable security log of scans, recommendation status changes, and report exports
+                </p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="table-container">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Log ID</th>
+                            <th>Action Type</th>
+                            <th>Target Entity</th>
+                            <th>Initiated By</th>
+                            <th>Activity Details</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${logs.empty}">
+                            <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 3rem;">
+                                No activity recorded yet.
+                            </td>
+                        </tr>
+                        <tr th:each="log : ${logs}">
+                            <td><span class="code-pill" th:text="'#' + ${log.id}">#1</span></td>
+                            <td>
+                                <span class="badge badge-low" th:text="${log.actionType}">SCAN_STARTED</span>
+                            </td>
+                            <td>
+                                <span class="code-pill" th:text="${log.entityType != null ? log.entityType + ' ' + log.entityId : '-'}">SCAN_JOB 1</span>
+                            </td>
+                            <td th:text="${log.user != null ? log.user.fullName : 'System / Auto'}">Platform Admin</td>
+                            <td th:text="${log.details}">Started cloud resource scan for region ap-south-1</td>
+                            <td style="color: var(--text-muted); font-size: 0.8rem;" th:text="${#temporals.format(log.createdAt, 'yyyy-MM-dd HH:mm:ss')} + ' UTC'">2026-10-07 10:15:00 UTC</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/navbar :: scanModal}"></div>
+</div>
+
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Cloud Cost Optimizer</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="app-container">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <main class="main-content">
+        <!-- Page Title & Header Actions -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+            <div>
+                <h1 style="font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em;">Cost Optimization Dashboard</h1>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">
+                    AWS Lab Account • Region: <span class="code-pill" th:text="${dashboard.latestScan != null ? dashboard.latestScan.region : 'ap-south-1'}">ap-south-1</span> • 
+                    Last Scan: <span th:text="${dashboard.latestScan != null and dashboard.latestScan.completedAt != null ? #temporals.format(dashboard.latestScan.completedAt, 'yyyy-MM-dd HH:mm') + ' UTC' : 'Never'}">2026-10-07 10:00 UTC</span>
+                </p>
+            </div>
+            <div style="display: flex; gap: 0.75rem;">
+                <a href="/reports" class="btn btn-secondary">
+                    <span>📑</span> Export Report
+                </a>
+                <button th:if="${currentUser != null and currentUser.role.name() == 'ADMIN'}" type="button" class="btn btn-primary" onclick="openScanModal()">
+                    <span>⚡</span> Scan Live AWS
+                </button>
+            </div>
+        </div>
+
+        <!-- KPI Grid -->
+        <div class="kpi-grid">
+            <!-- Health Score Card -->
+            <div class="card kpi-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div class="kpi-label">Optimization Score</div>
+                        <div class="kpi-value" th:classappend="${dashboard.healthScore >= 80 ? 'text-emerald' : (dashboard.healthScore >= 50 ? 'text-amber' : 'text-rose')}">
+                            <span th:text="${dashboard.healthScore}">85</span><span style="font-size: 1.1rem; color: var(--text-dim); font-weight: 500;">/100</span>
+                        </div>
+                        <div class="kpi-subtext">Deterministic waste formula</div>
+                    </div>
+                    <div class="score-badge-circle" th:classappend="${dashboard.healthScore >= 80 ? 'score-high' : (dashboard.healthScore >= 50 ? 'score-mid' : 'score-low')}" th:text="${dashboard.healthScore}">
+                        85
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Resources -->
+            <div class="card kpi-card">
+                <div class="kpi-label">Discovered Resources</div>
+                <div class="kpi-value text-cyan" th:text="${dashboard.totalResources}">
+                    12
+                </div>
+                <div class="kpi-subtext">EC2, EBS, EIP, S3 & IAM assets</div>
+            </div>
+
+            <!-- Estimated Monthly Spend -->
+            <div class="card kpi-card">
+                <div class="kpi-label">Estimated Monthly Spend</div>
+                <div class="kpi-value">
+                    $<span th:text="${dashboard.estimatedMonthlyCost != null ? dashboard.estimatedMonthlyCost : '0.00'}">148.50</span>
+                </div>
+                <div class="kpi-subtext">Based on active resource footprint</div>
+            </div>
+
+            <!-- Potential Monthly Savings -->
+            <div class="card kpi-card">
+                <div class="kpi-label">Potential Monthly Savings</div>
+                <div class="kpi-value text-emerald">
+                    $<span th:text="${dashboard.estimatedMonthlySavings != null ? dashboard.estimatedMonthlySavings : '0.00'}">82.30</span>
+                </div>
+                <div class="kpi-subtext">Recoverable from 5 rule findings</div>
+            </div>
+        </div>
+
+        <!-- Telemetry Charts Section -->
+        <div class="charts-grid">
+            <!-- Service Cost Breakdown Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><span>💰</span> Monthly Cost by AWS Service</h2>
+                    <span class="badge badge-low">USD / Month</span>
+                </div>
+                <div style="height: 280px; position: relative;">
+                    <canvas id="costBreakdownChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Resource Distribution Doughnut -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><span>🧩</span> Resource Footprint</h2>
+                    <span class="badge badge-low">Inventory</span>
+                </div>
+                <div style="height: 280px; position: relative;">
+                    <canvas id="resourceDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Priority Recommendations Section -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title"><span>💡</span> Top Cost Optimization Opportunities</h2>
+                    <p style="color: var(--text-dim); font-size: 0.825rem; margin-top: 0.2rem;">Deterministic rule-based recommendations detected in latest scan</p>
+                </div>
+                <a href="/recommendations" class="btn btn-secondary btn-sm">View All Findings &rarr;</a>
+            </div>
+
+            <div class="table-container">
+                <table class="custom-table" id="dashboardRecoTable">
+                    <thead>
+                        <tr>
+                            <th>Severity</th>
+                            <th>Rule</th>
+                            <th>Opportunity Title</th>
+                            <th>Est. Savings</th>
+                            <th>Status</th>
+                            <th style="text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${dashboard.topRecommendations.empty}">
+                            <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 2.5rem;">
+                                No open waste recommendations detected. Your AWS infrastructure is clean!
+                            </td>
+                        </tr>
+                        <tr th:each="reco : ${dashboard.topRecommendations}" th:id="'reco-row-' + ${reco.id}">
+                            <td>
+                                <span class="badge" th:classappend="${'badge-' + reco.severity.name().toLowerCase()}" th:text="${reco.severity}">HIGH</span>
+                            </td>
+                            <td>
+                                <span class="code-pill" th:text="${reco.ruleCode}">IDLE_EC2</span>
+                            </td>
+                            <td>
+                                <strong style="font-weight: 600;" th:text="${reco.title}">Idle EC2 Instance</strong>
+                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; max-width: 480px;" th:text="${reco.description}">Description text</div>
+                            </td>
+                            <td>
+                                <span style="font-weight: 700; color: var(--accent-emerald);" th:text="'$' + ${reco.estimatedMonthlySavings} + '/mo'">$45.00/mo</span>
+                            </td>
+                            <td>
+                                <span class="badge reco-status-badge" th:classappend="${'badge-' + reco.status.name().toLowerCase()}" th:text="${reco.status}">OPEN</span>
+                            </td>
+                            <td style="text-align: right;">
+                                <button th:if="${reco.status.name() == 'OPEN'}" type="button" class="btn btn-secondary btn-sm" th:onclick="'updateRecommendationStatus(' + ${reco.id} + ', \'ACKNOWLEDGED\')'">Acknowledge</button>
+                                <button th:if="${reco.status.name() == 'OPEN'}" type="button" class="btn btn-outline-danger btn-sm" style="margin-left: 0.3rem;" th:onclick="'updateRecommendationStatus(' + ${reco.id} + ', \'DISMISSED\')'">Dismiss</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Scans History Section -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title"><span>🛰️</span> Recent Scan History</h2>
+                <a href="/scans" class="btn btn-secondary btn-sm">All Scan Logs &rarr;</a>
+            </div>
+
+            <div class="table-container">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Scan ID</th>
+                            <th>Status</th>
+                            <th>Region</th>
+                            <th>Resources</th>
+                            <th>Score</th>
+                            <th>Est. Cost</th>
+                            <th>Est. Savings</th>
+                            <th>Started At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${dashboard.recentScans.empty}">
+                            <td colspan="8" style="text-align: center; color: var(--text-dim); padding: 2rem;">
+                                No scans executed yet. Click "Run AWS Scan" above to discover resources.
+                            </td>
+                        </tr>
+                        <tr th:each="scan : ${dashboard.recentScans}">
+                            <td><span class="code-pill" th:text="'#' + ${scan.id}">#1</span></td>
+                            <td>
+                                <span class="badge" th:classappend="${scan.status.name() == 'SUCCESS' ? 'badge-success' : (scan.status.name() == 'RUNNING' ? 'badge-running' : 'badge-critical')}" th:text="${scan.status}">SUCCESS</span>
+                            </td>
+                            <td th:text="${scan.region}">ap-south-1</td>
+                            <td th:text="${scan.resourcesScannedCount}">12</td>
+                            <td>
+                                <strong th:if="${scan.healthScore != null}" th:classappend="${scan.healthScore >= 80 ? 'text-emerald' : 'text-amber'}" th:text="${scan.healthScore} + '/100'">85/100</strong>
+                                <span th:if="${scan.healthScore == null}">-</span>
+                            </td>
+                            <td th:text="${scan.estimatedMonthlyCost != null ? '$' + scan.estimatedMonthlyCost : '-'}">$148.50</td>
+                            <td style="color: var(--accent-emerald); font-weight: 600;" th:text="${scan.estimatedMonthlySavings != null ? '$' + scan.estimatedMonthlySavings : '-'}">$82.30</td>
+                            <td style="color: var(--text-muted); font-size: 0.8rem;" th:text="${#temporals.format(scan.startedAt, 'yyyy-MM-dd HH:mm:ss')}">2026-10-07 10:15:00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/navbar :: scanModal}"></div>
+</div>
+
+<script th:src="@{/js/app.js}"></script>
+<script th:src="@{/js/charts.js}"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', () => {
+        const costData = /*[[${dashboard.costByService}]]*/ {};
+        const resourceCounts = /*[[${dashboard.resourceTypeCounts}]]*/ {};
+
+        initCostBreakdownChart('costBreakdownChart', costData);
+        initResourceDistributionChart('resourceDistributionChart', resourceCounts);
+    });
+    /*]]>*/
+</script>
+</body>
+</html>
