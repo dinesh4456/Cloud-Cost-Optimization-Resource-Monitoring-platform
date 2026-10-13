@@ -29,6 +29,7 @@ public class WebController {
     private final ReportService reportService;
     private final ActivityLogRepository activityLogRepository;
     private final AuthService authService;
+    private final com.cloudops.optimizer.user.UserRepository userRepository;
 
     public WebController(
             CurrentUserService currentUserService,
@@ -39,7 +40,8 @@ public class WebController {
             AlertService alertService,
             ReportService reportService,
             ActivityLogRepository activityLogRepository,
-            AuthService authService) {
+            AuthService authService,
+            com.cloudops.optimizer.user.UserRepository userRepository) {
         this.currentUserService = currentUserService;
         this.dashboardService = dashboardService;
         this.resourceService = resourceService;
@@ -49,6 +51,7 @@ public class WebController {
         this.reportService = reportService;
         this.activityLogRepository = activityLogRepository;
         this.authService = authService;
+        this.userRepository = userRepository;
     }
 
     private void populateCommonAttributes(Model model, String activePage) {
@@ -128,5 +131,12 @@ public class WebController {
         populateCommonAttributes(model, "activity");
         model.addAttribute("logs", activityLogRepository.findAllByOrderByCreatedAtDesc());
         return "activity";
+    }
+
+    @GetMapping("/users")
+    public String users(Model model) {
+        populateCommonAttributes(model, "users");
+        model.addAttribute("users", userRepository.findAllByOrderByCreatedAtDesc());
+        return "users";
     }
 }

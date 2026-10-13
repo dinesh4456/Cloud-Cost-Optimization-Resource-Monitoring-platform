@@ -18,9 +18,12 @@
                     Full audit logs of manual and scheduled cloud resource discovery pipelines
                 </p>
             </div>
-            <button type="button" class="btn btn-primary" onclick="openScanModal()">
+            <button th:if="${currentUser != null and currentUser.role.name() == 'ADMIN'}" type="button" class="btn btn-primary" onclick="openScanModal()">
                 <span>⚡</span> Run New Scan
             </button>
+            <div th:if="${currentUser != null and currentUser.role.name() != 'ADMIN'}" style="display:flex; align-items:center; gap:0.45rem; padding: 0.45rem 0.85rem; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 8px; font-size: 0.825rem; color: var(--text-muted);" title="Managed by Administrators">
+                <span style="color: #059669;">●</span> Scans Run Daily 02:00 UTC
+            </div>
         </div>
 
         <div class="card">

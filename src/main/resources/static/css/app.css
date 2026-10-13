@@ -182,12 +182,26 @@ body {
 
 .user-role-tag {
   font-size: 0.65rem;
-  padding: 0.1rem 0.35rem;
+  padding: 0.15rem 0.45rem;
   border-radius: 4px;
-  background-color: var(--primary-blue-light);
-  color: var(--primary-blue);
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.user-role-tag.role-admin {
+  background-color: #e0e7ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+}
+
+.user-role-tag.role-user {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
 }
 
 /* Clean Cards */

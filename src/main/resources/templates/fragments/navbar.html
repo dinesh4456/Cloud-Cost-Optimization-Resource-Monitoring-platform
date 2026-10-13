@@ -41,9 +41,14 @@
                     <span>🛰️</span> Scans
                 </a>
             </li>
-            <li>
+            <li th:if="${currentUser != null and currentUser.role.name() == 'ADMIN'}">
                 <a href="/activity" th:classappend="${activePage == 'activity' ? 'active' : ''}" class="nav-link">
                     <span>📋</span> Audit Log
+                </a>
+            </li>
+            <li th:if="${currentUser != null and currentUser.role.name() == 'ADMIN'}">
+                <a href="/users" th:classappend="${activePage == 'users' ? 'active' : ''}" class="nav-link">
+                    <span>👥</span> Team
                 </a>
             </li>
         </ul>
@@ -52,7 +57,8 @@
             <div class="user-profile-badge" th:if="${currentUser != null}">
                 <div class="user-avatar" th:text="${currentUser.fullName != null and !#strings.isEmpty(currentUser.fullName) ? #strings.substring(currentUser.fullName, 0, 1) : 'U'}">A</div>
                 <span style="font-weight: 500;" th:text="${currentUser.fullName != null ? currentUser.fullName : currentUser.email}">Admin</span>
-                <span class="user-role-tag" th:text="${currentUser.role}">ADMIN</span>
+                <span th:if="${currentUser.role.name() == 'ADMIN'}" class="user-role-tag role-admin">🛡️ ADMIN</span>
+                <span th:if="${currentUser.role.name() != 'ADMIN'}" class="user-role-tag role-user">👤 MEMBER</span>
             </div>
 
             <a th:if="${currentUser != null}" href="/logout" class="btn btn-secondary btn-sm" style="display:inline-flex; align-items:center; gap:0.4rem; padding: 0.45rem 0.85rem; font-size: 0.825rem; font-weight: 600; text-decoration: none;" title="Sign out of your account">

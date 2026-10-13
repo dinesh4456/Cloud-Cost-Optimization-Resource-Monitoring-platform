@@ -21,13 +21,16 @@
                     Last Scan: <span th:text="${dashboard.latestScan != null and dashboard.latestScan.completedAt != null ? #temporals.format(dashboard.latestScan.completedAt, 'yyyy-MM-dd HH:mm') + ' UTC' : 'Never'}">2026-10-07 10:00 UTC</span>
                 </p>
             </div>
-            <div style="display: flex; gap: 0.75rem;">
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
                 <a href="/reports" class="btn btn-secondary">
                     <span>📑</span> Export Report
                 </a>
-                <button type="button" class="btn btn-primary" onclick="openScanModal()">
+                <button th:if="${currentUser != null and currentUser.role.name() == 'ADMIN'}" type="button" class="btn btn-primary" onclick="openScanModal()">
                     <span>⚡</span> Scan Live AWS
                 </button>
+                <div th:if="${currentUser != null and currentUser.role.name() != 'ADMIN'}" style="display:flex; align-items:center; gap:0.45rem; padding: 0.45rem 0.85rem; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 8px; font-size: 0.825rem; color: var(--text-muted);" title="Automated discovery scans are scheduled by Administrators">
+                    <span style="color: #059669; font-size: 0.9rem;">●</span> Next Auto-Scan: Daily 02:00
+                </div>
             </div>
         </div>
 
