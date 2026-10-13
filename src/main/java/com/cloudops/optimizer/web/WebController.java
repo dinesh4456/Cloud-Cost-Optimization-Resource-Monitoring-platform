@@ -10,6 +10,8 @@ import com.cloudops.optimizer.scan.ScanService;
 import com.cloudops.optimizer.snapshot.ResourceService;
 import com.cloudops.optimizer.snapshot.ResourceType;
 import com.cloudops.optimizer.user.User;
+import com.cloudops.optimizer.auth.AuthService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +28,7 @@ public class WebController {
     private final AlertService alertService;
     private final ReportService reportService;
     private final ActivityLogRepository activityLogRepository;
+    private final AuthService authService;
 
     public WebController(
             CurrentUserService currentUserService,
@@ -35,7 +38,8 @@ public class WebController {
             RecommendationService recommendationService,
             AlertService alertService,
             ReportService reportService,
-            ActivityLogRepository activityLogRepository) {
+            ActivityLogRepository activityLogRepository,
+            AuthService authService) {
         this.currentUserService = currentUserService;
         this.dashboardService = dashboardService;
         this.resourceService = resourceService;
@@ -44,6 +48,7 @@ public class WebController {
         this.alertService = alertService;
         this.reportService = reportService;
         this.activityLogRepository = activityLogRepository;
+        this.authService = authService;
     }
 
     private void populateCommonAttributes(Model model, String activePage) {
@@ -66,6 +71,12 @@ public class WebController {
     @GetMapping("/register")
     public String register() {
         return "register";
+    }
+
+    @GetMapping("/logout")
+    public String logout(HttpServletResponse response) {
+        authService.logout(response);
+        return "redirect:/login";
     }
 
     @GetMapping("/dashboard")

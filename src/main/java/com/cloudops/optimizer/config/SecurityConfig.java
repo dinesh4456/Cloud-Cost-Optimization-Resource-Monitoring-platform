@@ -41,10 +41,6 @@ public class SecurityConfig {
                                 "/actuator/health",
                                 "/error")
                         .permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/scans")
-                        .hasRole("ADMIN")
-                        .requestMatchers("/scans", "/activity", "/api/activity")
-                        .hasRole("ADMIN")
                         .anyRequest()
                         .authenticated())
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(this::commence)

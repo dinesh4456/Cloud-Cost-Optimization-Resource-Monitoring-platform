@@ -41,7 +41,7 @@
                     <span>🛰️</span> Scans
                 </a>
             </li>
-            <li th:if="${currentUser != null and currentUser.role.name() == 'ADMIN'}">
+            <li>
                 <a href="/activity" th:classappend="${activePage == 'activity' ? 'active' : ''}" class="nav-link">
                     <span>📋</span> Audit Log
                 </a>
@@ -49,16 +49,15 @@
         </ul>
 
         <div class="nav-actions">
-            <button th:if="${currentUser != null and currentUser.role.name() == 'ADMIN'}" type="button" class="btn btn-primary btn-sm" onclick="openScanModal()">
-                <span>⚡</span> Run AWS Scan
-            </button>
-
             <div class="user-profile-badge" th:if="${currentUser != null}">
                 <div class="user-avatar" th:text="${currentUser.fullName != null and !#strings.isEmpty(currentUser.fullName) ? #strings.substring(currentUser.fullName, 0, 1) : 'U'}">A</div>
                 <span style="font-weight: 500;" th:text="${currentUser.fullName != null ? currentUser.fullName : currentUser.email}">Admin</span>
                 <span class="user-role-tag" th:text="${currentUser.role}">ADMIN</span>
-                <button type="button" onclick="handleLogout()" title="Logout" style="background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:0.9rem; margin-left: 0.3rem;">🚪</button>
             </div>
+
+            <a th:if="${currentUser != null}" href="/logout" class="btn btn-secondary btn-sm" style="display:inline-flex; align-items:center; gap:0.4rem; padding: 0.45rem 0.85rem; font-size: 0.825rem; font-weight: 600; text-decoration: none;" title="Sign out of your account">
+                <span>🚪</span> Logout
+            </a>
         </div>
     </div>
 </nav>
