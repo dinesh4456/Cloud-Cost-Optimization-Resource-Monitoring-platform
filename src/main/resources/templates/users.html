@@ -57,7 +57,7 @@
                                 <div style="display: flex; align-items: center; gap: 0.75rem;">
                                     <div class="user-avatar" style="width: 34px; height: 34px; font-size: 0.85rem;" th:text="${!#strings.isEmpty(u.fullName) ? #strings.substring(u.fullName, 0, 1) : 'U'}">A</div>
                                     <div>
-                                        <div style="font-weight: 600;" th:text="${!#strings.isEmpty(u.fullName) ? u.fullName : 'Unnamed User'}">Dinesh Kumar</div>
+                                        <div style="font-weight: 600;" th:text="${!#strings.isEmpty(u.fullName) ? u.fullName : 'Unnamed User'}">Team Member</div>
                                         <div style="font-size: 0.75rem; color: var(--text-muted);" th:text="'User ID #' + ${u.id}">User ID #1</div>
                                     </div>
                                 </div>

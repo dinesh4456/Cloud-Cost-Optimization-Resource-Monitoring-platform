@@ -172,4 +172,9 @@ Attach this read-only IAM policy to your AWS IAM User or EC2 Instance Role:
 | `PATCH` | `/api/alerts/{id}/read` | USER+ | Mark alert as read |
 | `POST` | `/api/reports` | USER+ | Generate PDF report (`OPTIMIZATION`, `WEEKLY`, `MONTHLY`) |
 | `GET` | `/api/reports/{id}/pdf` | USER+ | Download binary PDF export |
+| `GET` | `/api/users` | ADMIN | List organization users & roles |
+| `PATCH` | `/api/users/{id}/role` | ADMIN | Update user role (`ADMIN` / `USER`) |
+| `PATCH` | `/api/users/{id}/password` | ADMIN | Reset member password |
 | `GET` | `/api/activity` | ADMIN | System audit logs |
+| `GET` | `/users` | ADMIN | Team & Access Governance management page |
+

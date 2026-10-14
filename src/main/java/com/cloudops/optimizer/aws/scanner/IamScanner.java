@@ -112,9 +112,9 @@ public class IamScanner implements ResourceScanner {
 
         // 2. Active admin IAM user (healthy)
         ResourceSnapshot activeUser = new ResourceSnapshot(
-                job, ResourceType.IAM, "AIDAJQAB9876EXAMPLE2", "platform-admin-dinesh", "global", "ACTIVE");
+                job, ResourceType.IAM, "AIDAJQAB9876EXAMPLE2", "platform-admin-core", "global", "ACTIVE");
         Map<String, String> attrs2 = new LinkedHashMap<>();
-        attrs2.put("arn", "arn:aws:iam::123456789012:user/platform-admin-dinesh");
+        attrs2.put("arn", "arn:aws:iam::123456789012:user/platform-admin-core");
         attrs2.put("createDate", Instant.now().minus(45, ChronoUnit.DAYS).toString());
         attrs2.put("passwordLastUsed", Instant.now().minus(1, ChronoUnit.DAYS).toString());
         attrs2.put("activeAccessKeys", "1");
