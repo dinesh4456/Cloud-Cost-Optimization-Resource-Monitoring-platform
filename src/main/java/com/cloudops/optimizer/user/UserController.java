@@ -6,6 +6,7 @@ import com.cloudops.optimizer.common.CurrentUserService;
 import com.cloudops.optimizer.common.ResourceNotFoundException;
 import java.util.List;
 import java.util.Map;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,14 +21,17 @@ public class UserController {
     private final UserRepository userRepository;
     private final ActivityLogService activityLogService;
     private final CurrentUserService currentUserService;
+    private final PasswordEncoder passwordEncoder;
 
     public UserController(
             UserRepository userRepository,
             ActivityLogService activityLogService,
-            CurrentUserService currentUserService) {
+            CurrentUserService currentUserService,
+            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.activityLogService = activityLogService;
         this.currentUserService = currentUserService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping
@@ -59,5 +63,33 @@ public class UserController {
         );
 
         return saved;
+    }
+
+    @PatchMapping("/{id}/password")
+    public Map<String, String> resetPassword(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        User targetUser = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
+
+        String newPassword = body.get("password");
+        if (newPassword == null || newPassword.trim().length() < 8) {
+            throw new BusinessException("Password must be at least 8 characters long");
+        }
+
+        targetUser.setPasswordHash(passwordEncoder.encode(newPassword.trim()));
+        userRepository.save(targetUser);
+
+        User currentUser = currentUserService.getCurrentUserOrNull();
+        activityLogService.record(
+                currentUser,
+                "PASSWORD_RESET",
+                "USER",
+                String.valueOf(targetUser.getId()),
+                "Admin reset password for " + targetUser.getEmail()
+        );
+
+        return Map.of(
+                "status", "success",
+                "message", "Password successfully reset for " + targetUser.getEmail()
+        );
     }
 }
