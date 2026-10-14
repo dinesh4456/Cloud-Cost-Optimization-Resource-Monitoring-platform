@@ -29,10 +29,16 @@ public class AdminUserInitializer implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         String email = properties.getAdmin().getEmail().trim().toLowerCase();
-        if (userRepository.existsByEmail(email)) {
+        User admin = userRepository.findByEmail(email).orElse(null);
+        if (admin != null) {
+            if (admin.getRole() != Role.ADMIN) {
+                admin.setRole(Role.ADMIN);
+                userRepository.save(admin);
+                log.info("Restored master ADMIN role for {}", email);
+            }
             return;
         }
-        User admin = new User(
+        admin = new User(
                 email,
                 passwordEncoder.encode(properties.getAdmin().getPassword()),
                 properties.getAdmin().getName(),

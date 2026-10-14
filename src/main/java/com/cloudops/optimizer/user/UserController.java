@@ -67,8 +67,17 @@ public class UserController {
 
     @PatchMapping("/{id}/password")
     public Map<String, String> resetPassword(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        User currentUser = currentUserService.getCurrentUserOrNull();
+        if (currentUser == null || currentUser.getRole() != Role.ADMIN) {
+            throw new BusinessException("Access Denied: Only administrators can reset member passwords.");
+        }
+
         User targetUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
+
+        if (targetUser.getRole() == Role.ADMIN && !targetUser.getId().equals(currentUser.getId())) {
+            throw new BusinessException("Administrative accounts cannot be reset via team temporary credentials.");
+        }
 
         String newPassword = body.get("password");
         if (newPassword == null || newPassword.trim().length() < 8) {
@@ -78,13 +87,12 @@ public class UserController {
         targetUser.setPasswordHash(passwordEncoder.encode(newPassword.trim()));
         userRepository.save(targetUser);
 
-        User currentUser = currentUserService.getCurrentUserOrNull();
         activityLogService.record(
                 currentUser,
                 "PASSWORD_RESET",
                 "USER",
                 String.valueOf(targetUser.getId()),
-                "Admin reset password for " + targetUser.getEmail()
+                "Admin (" + currentUser.getEmail() + ") reset password for member " + targetUser.getEmail()
         );
 
         return Map.of(

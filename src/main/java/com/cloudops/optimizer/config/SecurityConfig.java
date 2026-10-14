@@ -43,7 +43,15 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/scans")
                         .hasRole("ADMIN")
-                        .requestMatchers("/activity", "/api/activity/**", "/users", "/api/users/**")
+                        .requestMatchers(
+                                "/activity",
+                                "/activity/**",
+                                "/api/activity",
+                                "/api/activity/**",
+                                "/users",
+                                "/users/**",
+                                "/api/users",
+                                "/api/users/**")
                         .hasRole("ADMIN")
                         .anyRequest()
                         .authenticated())
